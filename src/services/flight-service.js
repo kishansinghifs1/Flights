@@ -109,9 +109,22 @@ async function updateSeats(data){
   }
 }
 
+async function updateFlight(id, data) {
+    try {
+        const response = await flightRepository.update(id, data);
+        return response;
+    } catch (error) {
+        if(error.statusCode == StatusCodes.NOT_FOUND){
+            throw new AppError('The flight you requested is not found',error.statusCode);
+        }
+        throw new AppError('Cannot update data of the flight', StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+}
+
 module.exports = {
   createFlight,
   getAllFlights,
   getFlight,
-  updateSeats
+  updateSeats,
+  updateFlight
 };

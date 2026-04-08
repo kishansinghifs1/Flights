@@ -22,6 +22,19 @@ async function createCity(req, res){
         .json(ErrorResponse);
     }
 }
+async function getCities(req, res){
+    try {
+        const cities = await CityService.getCities();
+        SuccessResponse.data = cities;
+        return res
+        .status(StatusCodes.OK)
+        .json(SuccessResponse);
+    } catch (error) {
+        ErrorResponse.error = error;
+        return res.status(error.statusCode)
+        .json(ErrorResponse);
+    }
+}
 async function deleteCity(req, res){
     try {
         const response = await CityService.deleteCity(req.params.id);
@@ -54,5 +67,6 @@ async function updateCity(req, res){
 module.exports = {
     createCity,
     deleteCity,
-    updateCity
+    updateCity,
+    getCities
 }

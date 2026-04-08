@@ -12,5 +12,7 @@ router.post('/',
  router.delete('/:id', CityController.deleteCity);
 // /api/v1/City/:id PUT
 router.put('/:id', CityController.updateCity);
+// /api/v1/City GET
+router.get('/', CityController.getCities);
 
 module.exports=router;
