@@ -7,6 +7,42 @@ class FlightRepository extends CrudRepository{
     constructor(){
         super(flight);
     }
+    async get(id) {
+        const response = await flight.findByPk(id, {
+            include: [
+                {
+                    model: Airplane,
+                    required: true,
+                    as: 'airplaneDetail'
+                },
+                {
+                    model: Airport,
+                    required: true,
+                    as: 'departureAirport',
+                    on: {
+                        col1: Sequelize.where(Sequelize.col("flight.departureAirportId"), "=", Sequelize.col("departureAirport.code"))
+                    },
+                    include: {
+                        model: City,
+                        required: true
+                    }
+                },
+                {
+                    model: Airport,
+                    required: true,
+                    as: 'arrivalAirport',
+                    on: {
+                        col1: Sequelize.where(Sequelize.col("flight.arrivalAirportId"), "=", Sequelize.col("arrivalAirport.code"))
+                    },
+                    include: {
+                        model: City,
+                        required: true
+                    }
+                }
+            ]
+        });
+        return response;
+    }
     async getAllFlights(filter,sort){
         const response=await flight.findAll({
             where:filter,

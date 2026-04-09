@@ -8,6 +8,16 @@ const flightRepository = new FlightRepository();
 
 async function createFlight(data) {
   try {
+    const departureAirportId = String(data.departureAirportId || "").trim().toUpperCase();
+    const arrivalAirportId = String(data.arrivalAirportId || "").trim().toUpperCase();
+
+    if (departureAirportId === arrivalAirportId) {
+      throw new AppError(
+        ["Departure and arrival airports cannot be the same"],
+        StatusCodes.BAD_REQUEST,
+      );
+    }
+
     // validation: arrival must be AFTER departure
     if (!compareTimes(data.arrivalTime, data.departureTime)) {
       throw new AppError(
@@ -15,7 +25,12 @@ async function createFlight(data) {
         StatusCodes.BAD_REQUEST,
       );
     }
-    const flight = await flightRepository.create(data);
+
+    const flight = await flightRepository.create({
+      ...data,
+      departureAirportId,
+      arrivalAirportId,
+    });
     return flight;
   } catch (error) {
     if (error.name == "SequelizeValidationError") {
@@ -25,6 +40,24 @@ async function createFlight(data) {
       });
 
       throw new AppError(explanation, StatusCodes.BAD_REQUEST);
+    }
+
+    if (error.name == "SequelizeForeignKeyConstraintError") {
+      throw new AppError(
+        [
+          "Invalid route or airplane reference. Use existing airport codes and a valid airplane ID.",
+        ],
+        StatusCodes.BAD_REQUEST,
+      );
+    }
+
+    if (error.name == "SequelizeDatabaseError" && error.parent?.code === "23503") {
+      throw new AppError(
+        [
+          "Invalid route or airplane reference. Use existing airport codes and a valid airplane ID.",
+        ],
+        StatusCodes.BAD_REQUEST,
+      );
     }
 
     if (error instanceof AppError) {
@@ -121,10 +154,23 @@ async function updateFlight(id, data) {
     }
 }
 
+async function destroyFlight(id) {
+  try {
+    const response = await flightRepository.destroy(id);
+    return response;
+  } catch (error) {
+    if (error.statusCode == StatusCodes.NOT_FOUND) {
+      throw new AppError('The flight you requested to delete is not found', error.statusCode);
+    }
+    throw new AppError('Cannot delete data of the flight', StatusCodes.INTERNAL_SERVER_ERROR);
+  }
+}
+
 module.exports = {
   createFlight,
   getAllFlights,
   getFlight,
   updateSeats,
-  updateFlight
+  updateFlight,
+  destroyFlight
 };

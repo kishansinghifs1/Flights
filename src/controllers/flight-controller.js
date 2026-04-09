@@ -46,7 +46,7 @@ async function getAllFlights(req, res){
         const flights = await FlightService.getAllFlights(req.query);
         SuccessResponse.data = flights;
         return res
-        .status(StatusCodes.CREATED)
+        .status(StatusCodes.OK)
         .json(SuccessResponse);
     } catch (error) {
         ErrorResponse.error = error;
@@ -98,11 +98,25 @@ async function updateFlight(req, res){
         .json(ErrorResponse);
     }
 }
+async function destroyFlight(req, res){
+    try {
+        const response = await FlightService.destroyFlight(req.params.id);
+        SuccessResponse.data = response;
+        return res
+        .status(StatusCodes.OK)
+        .json(SuccessResponse);
+    } catch (error) {
+        ErrorResponse.error = error;
+        return res.status(error.statusCode)
+        .json(ErrorResponse);
+    }
+}
 
 module.exports = {
     createFlight,
     getAllFlights,
     getFlight,
     updateSeats,
-    updateFlight
+    updateFlight,
+    destroyFlight
 }
